@@ -1,0 +1,48 @@
+diff --git a/app/api.py b/app/api.py
+index 3f1c2aa..40aa917 100644
+--- a/app/api.py
++++ b/app/api.py
+@@ -4,7 +4,7 @@
+ a plain dict, so handlers are trivial to test without an HTTP server.
+ """
+
+-from app.models import Customer, Order
++from app.models import Customer, LineItem, Order
+ from app.orders import order_total
+ from app.store import ORDERS
+ from app.validation import validate_quantity, validate_sku
+@@ -18,6 +18,10 @@ def list_orders(params: dict) -> dict:
+ def create_order(payload: dict) -> dict:
+     for item in payload.get("items", []):
+         validate_sku(item["sku"])
+         validate_quantity(item["quantity"])
+-    order = Order(id=payload["id"], customer=Customer(**payload["customer"]))
++    order = Order(
++        id=payload["id"],
++        customer=Customer(**payload["customer"]),
++        items=[LineItem(**item) for item in payload.get("items", [])],
++    )
+     ORDERS[order.id] = order
+     return {"id": order.id, "total": order_total(order)}
+diff --git a/tests/test_create_order.py b/tests/test_create_order.py
+new file mode 100644
+index 0000000..cd190f3
+--- /dev/null
++++ b/tests/test_create_order.py
+@@ -0,0 +1,18 @@
++from app.api import create_order
++from app.store import ORDERS
++
++
++def test_created_order_carries_items_and_total():
++    ORDERS.clear()
++    result = create_order({
++        "id": "o1",
++        "customer": {"id": "c1", "name": "Test", "email": "t@example.com"},
++        "items": [
++            {"sku": "SKU-1", "description": "Widget", "unit_price": 10.00, "quantity": 3},
++        ],
++    })
++    assert ORDERS["o1"].item_count == 3
++    # 30.00 merchandise + 5.00 flat shipping (below free-shipping threshold)
++    assert result["total"] == 35.00

@@ -1,0 +1,58 @@
+diff --git a/app/orders.py b/app/orders.py
+index 8c1f0d2..0da4c33 100644
+--- a/app/orders.py
++++ b/app/orders.py
+@@ -4,6 +4,7 @@ from app.models import Order
+
+ FLAT_SHIPPING = 5.00
+ FREE_SHIPPING_THRESHOLD = 100.00
++TAX_RATE = 0.08
+
+
+ def subtotal(order: Order) -> float:
+@@ -18,3 +19,13 @@ def shipping_fee(order: Order) -> float:
+
+ def order_total(order: Order) -> float:
+     return subtotal(order) + shipping_fee(order)
++
++
++def order_summary(order: Order) -> dict:
++    sub = subtotal(order)
++    ship = shipping_fee(order)
++    tax = round(sub * TAX_RATE, 2)
++    return {"subtotal": sub, "shipping": ship, "tax": tax, "total": round(sub + ship + tax, 2)}
+diff --git a/tests/test_summary.py b/tests/test_summary.py
+new file mode 100644
+index 0000000..5e7b311
+--- /dev/null
++++ b/tests/test_summary.py
+@@ -0,0 +1,28 @@
++from app.models import Customer, LineItem, Order
++from app.orders import order_summary
++
++
++def make_order(*items):
++    customer = Customer(id="c1", name="Test Customer", email="test@example.com")
++    return Order(id="o1", customer=customer, items=list(items))
++
++
++def test_summary_breaks_out_fields():
++    order = make_order(LineItem("SKU-1", "Widget", 12.50, 2))
++    summary = order_summary(order)
++    assert summary["subtotal"] == 25.00
++    assert summary["shipping"] == 5.00
++    assert summary["tax"] == 2.00
++    assert summary["total"] == 32.00
++
++
++def test_shipping_is_not_taxed():
++    order = make_order(LineItem("SKU-1", "Widget", 50.00, 1))
++    assert order_summary(order)["tax"] == 4.00
++
++
++def test_empty_order_summary():
++    summary = order_summary(make_order())
++    assert summary["subtotal"] == 0.00
++    assert summary["tax"] == 0.00
++    assert summary["shipping"] == 5.00  # flat fee still applies below the threshold
++    assert summary["total"] == 5.00

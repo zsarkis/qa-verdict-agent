@@ -1,0 +1,13 @@
+{
+  "id": "QA-103",
+  "title": "Bulk discount for orders of 5+ items",
+  "type": "feature",
+  "status": "ready_for_qa",
+  "reporter": "priya",
+  "body": "Sales wants a volume incentive: orders with five or more total items get 10% off the merchandise subtotal. Shipping is charged on the discounted amount as usual.",
+  "acceptance_criteria": [
+    {"id": "AC-1", "text": "Orders with 5 or more total items get a 10% discount on the subtotal; smaller orders are unaffected."},
+    {"id": "AC-2", "text": "The discounted subtotal is a correctly rounded currency value."}
+  ],
+  "diff_ref": "QA-103.diff"
+}

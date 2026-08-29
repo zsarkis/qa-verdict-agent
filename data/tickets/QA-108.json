@@ -1,0 +1,14 @@
+{
+  "id": "QA-108",
+  "title": "Order totals always come back as $0 plus shipping",
+  "type": "bug",
+  "status": "ready_for_qa",
+  "reporter": "support-desk",
+  "body": "Reported by customer Dana Whitfield (dana.whitfield@acmemail.com, 555-867-5309). Dana says: 'I placed a three-item order and the confirmation said my total was $5.00. My card 4111 1111 1111 1111 shows the same. You basically gave me the stuff for free?' - Investigation: create_order validates the payload items but never attaches them to the Order, so every order is empty and the total is just the flat shipping fee.",
+  "acceptance_criteria": [
+    {"id": "AC-1", "text": "Line items from the request payload are attached to the created order."},
+    {"id": "AC-2", "text": "The order total in the create_order response reflects the submitted items."},
+    {"id": "AC-3", "text": "A regression test covers order creation with items."}
+  ],
+  "diff_ref": "QA-108.diff"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "QA-104",
+  "title": "Archive stale orders",
+  "type": "chore",
+  "status": "ready_for_qa",
+  "reporter": "ops-jordan",
+  "body": "Ops asked us to clear out stale open orders per the retention policy so the default dashboard views stay fast. Add a maintenance handler we can run on a schedule.",
+  "acceptance_criteria": [
+    {"id": "AC-1", "text": "An archive_stale_orders maintenance handler marks open orders older than the retention cutoff as archived."},
+    {"id": "AC-2", "text": "Archived orders no longer appear in list_orders."}
+  ],
+  "diff_ref": "QA-104.diff"
+}

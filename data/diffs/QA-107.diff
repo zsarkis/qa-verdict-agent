@@ -1,0 +1,41 @@
+diff --git a/app/models.py b/app/models.py
+index a4b90e1..f21d6c8 100644
+--- a/app/models.py
++++ b/app/models.py
+@@ -17,6 +17,7 @@ class LineItem:
+     description: str
+     unit_price: float
+     quantity: int
++    gift_wrap: bool = False
+
+
+ @dataclass
+diff --git a/app/api.py b/app/api.py
+index 3f1c2aa..88d0b52 100644
+--- a/app/api.py
++++ b/app/api.py
+@@ -18,7 +18,6 @@ def list_orders(params: dict) -> dict:
+ def create_order(payload: dict) -> dict:
+     for item in payload.get("items", []):
+         validate_sku(item["sku"])
+-        validate_quantity(item["quantity"])
+     order = Order(id=payload["id"], customer=Customer(**payload["customer"]))
+     ORDERS[order.id] = order
+     return {"id": order.id, "total": order_total(order)}
+diff --git a/tests/test_gift_wrap.py b/tests/test_gift_wrap.py
+new file mode 100644
+index 0000000..2c60d17
+--- /dev/null
++++ b/tests/test_gift_wrap.py
+@@ -0,0 +1,11 @@
++from app.models import LineItem
++
++
++def test_gift_wrap_defaults_false():
++    item = LineItem("SKU-1", "Widget", 10.00, 1)
++    assert item.gift_wrap is False
++
++
++def test_gift_wrap_can_be_set():
++    item = LineItem("SKU-1", "Widget", 10.00, 1, gift_wrap=True)
++    assert item.gift_wrap is True

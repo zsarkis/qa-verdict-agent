@@ -1,0 +1,14 @@
+{
+  "id": "QA-101",
+  "title": "Paginate the orders list",
+  "type": "feature",
+  "status": "ready_for_qa",
+  "reporter": "priya",
+  "body": "The orders list endpoint returns everything in one response and the ops dashboard is getting slow with larger accounts. Add standard limit/offset pagination.",
+  "acceptance_criteria": [
+    {"id": "AC-1", "text": "list_orders accepts optional limit and offset params, defaulting to limit=20 and offset=0."},
+    {"id": "AC-2", "text": "The response includes total_count: the number of non-archived orders regardless of the current page. count now reflects the size of the returned page."},
+    {"id": "AC-3", "text": "Tests cover the default page and an offset page."}
+  ],
+  "diff_ref": "QA-101.diff"
+}

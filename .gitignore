@@ -1,0 +1,23 @@
+# secrets & env
+.env
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# runtime artifacts
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+data/board/outbox/
+
+# personal working notes — deliberately uncommitted (consolidated into README before submission)
+/DECISIONS.md
+/notes/
+
+# os
+.DS_Store

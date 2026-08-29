@@ -1,0 +1,81 @@
+diff --git a/app/orders.py b/app/orders.py
+index 8c1f0d2..3aa16d0 100644
+--- a/app/orders.py
++++ b/app/orders.py
+@@ -1,20 +1,37 @@
+ """Order pricing and fulfilment logic."""
+
+ from app.models import Order
+
+ FLAT_SHIPPING = 5.00
+ FREE_SHIPPING_THRESHOLD = 100.00
+
+
+ def subtotal(order: Order) -> float:
+     return sum(item.unit_price * item.quantity for item in order.items)
+
+
+-def shipping_fee(order: Order) -> float:
+-    if subtotal(order) >= FREE_SHIPPING_THRESHOLD:
+-        return 0.00
+-    return FLAT_SHIPPING
++def apply_promo(amount: float, promo: dict | None) -> float:
++    """Apply a percentage promo to a merchandise amount."""
++    if not promo:
++        return amount
++    percent = float(promo.get("percent_off", 0))
++    return round(amount * (1 - percent / 100), 2)
+
+
+-def order_total(order: Order) -> float:
+-    return subtotal(order) + shipping_fee(order)
++def shipping_fee_for(amount: float) -> float:
++    """Shipping owed on a given merchandise amount."""
++    if amount >= FREE_SHIPPING_THRESHOLD:
++        return 0.00
++    return FLAT_SHIPPING
++
++
++def shipping_fee(order: Order) -> float:
++    # Kept for existing callers: shipping on the undiscounted subtotal.
++    return shipping_fee_for(subtotal(order))
++
++
++def order_total(order: Order, promo: dict | None = None) -> float:
++    discounted = apply_promo(subtotal(order), promo)
++    return discounted + shipping_fee_for(discounted)
+diff --git a/tests/test_promo.py b/tests/test_promo.py
+new file mode 100644
+index 0000000..91fd402
+--- /dev/null
++++ b/tests/test_promo.py
+@@ -0,0 +1,28 @@
++from app.models import Customer, LineItem, Order
++from app.orders import order_total
++
++
++def make_order(*items):
++    customer = Customer(id="c1", name="Test Customer", email="test@example.com")
++    return Order(id="o1", customer=customer, items=list(items))
++
++
++def test_promo_discounts_subtotal_before_shipping():
++    order = make_order(LineItem("SKU-1", "Widget", 50.00, 1))
++    # 50.00 - 20% = 40.00, below threshold, + 5.00 shipping
++    assert order_total(order, {"code": "SAVE20", "percent_off": 20}) == 45.00
++
++
++def test_threshold_applies_to_discounted_subtotal():
++    order = make_order(LineItem("SKU-1", "Widget", 110.00, 1))
++    # 110.00 - 20% = 88.00 -> discounted amount is below 100, shipping now applies
++    assert order_total(order, {"code": "SAVE20", "percent_off": 20}) == 93.00
++
++
++def test_no_promo_keeps_existing_totals():
++    order = make_order(LineItem("SKU-1", "Widget", 10.00, 1))
++    assert order_total(order) == 15.00
++
++
++def test_free_shipping_still_free_without_promo():
++    order = make_order(LineItem("SKU-1", "Widget", 100.00, 1))
++    assert order_total(order) == 100.00

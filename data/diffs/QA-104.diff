@@ -1,0 +1,58 @@
+diff --git a/app/api.py b/app/api.py
+index 3f1c2aa..1d99e42 100644
+--- a/app/api.py
++++ b/app/api.py
+@@ -4,11 +4,15 @@
+ a plain dict, so handlers are trivial to test without an HTTP server.
+ """
+
++from datetime import datetime, timedelta
++
+ from app.models import Customer, Order
+ from app.orders import order_total
+ from app.store import ORDERS
+ from app.validation import validate_quantity, validate_sku
+
++RETENTION_DAYS = 90
++
+
+ def list_orders(params: dict) -> dict:
+     orders = [o for o in ORDERS.values() if o.status != "archived"]
+@@ -22,3 +26,13 @@ def create_order(payload: dict) -> dict:
+     order = Order(id=payload["id"], customer=Customer(**payload["customer"]))
+     ORDERS[order.id] = order
+     return {"id": order.id, "total": order_total(order)}
++
++
++def archive_stale_orders(params: dict) -> dict:
++    cutoff = datetime.utcnow() - timedelta(days=RETENTION_DAYS)
++    archived = []
++    for order in ORDERS.values():
++        if order.status == "open" and order.created_at < cutoff:
++            order.status = "archived"
++            archived.append(order.id)
++    return {"archived": archived, "count": len(archived)}
+diff --git a/tests/test_archive.py b/tests/test_archive.py
+new file mode 100644
+index 0000000..91c4be7
+--- /dev/null
++++ b/tests/test_archive.py
+@@ -0,0 +1,18 @@
++from datetime import datetime, timedelta
++
++from app.api import archive_stale_orders, list_orders
++from app.models import Customer, Order
++from app.store import ORDERS
++
++
++def test_archived_orders_leave_the_default_listing():
++    ORDERS.clear()
++    customer = Customer(id="c1", name="Test", email="t@example.com")
++    old = Order(id="old", customer=customer)
++    old.created_at = datetime.utcnow() - timedelta(days=400)
++    fresh = Order(id="fresh", customer=customer)
++    ORDERS.update({"old": old, "fresh": fresh})
++
++    result = archive_stale_orders({})
++    assert result["archived"] == ["old"]
++    assert list_orders({})["orders"] == ["fresh"]

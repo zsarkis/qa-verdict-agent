@@ -1,0 +1,56 @@
+diff --git a/app/api.py b/app/api.py
+index 3f1c2aa..9d04b71 100644
+--- a/app/api.py
++++ b/app/api.py
+@@ -12,8 +12,15 @@ from app.validation import validate_quantity, validate_sku
+
+ def list_orders(params: dict) -> dict:
+     orders = [o for o in ORDERS.values() if o.status != "archived"]
+-    return {"orders": [o.id for o in orders], "count": len(orders)}
++    limit = int(params.get("limit", 20))
++    offset = int(params.get("offset", 0))
++    page = orders[offset : offset + limit]
++    return {
++        "orders": [o.id for o in page],
++        "count": len(page),
++        "total_count": len(orders),
++    }
+
+
+ def create_order(payload: dict) -> dict:
+diff --git a/tests/test_api.py b/tests/test_api.py
+new file mode 100644
+index 0000000..b8f22c1
+--- /dev/null
++++ b/tests/test_api.py
+@@ -0,0 +1,29 @@
++from app.api import list_orders
++from app.models import Customer, Order
++from app.store import ORDERS
++
++
++def seed(n):
++    ORDERS.clear()
++    customer = Customer(id="c1", name="Test", email="t@example.com")
++    for i in range(n):
++        ORDERS[f"o{i}"] = Order(id=f"o{i}", customer=customer)
++
++
++def test_default_page_is_20():
++    seed(25)
++    result = list_orders({})
++    assert result["count"] == 20
++    assert result["total_count"] == 25
++
++
++def test_offset_returns_remainder():
++    seed(25)
++    result = list_orders({"limit": 20, "offset": 20})
++    assert result["orders"] == [f"o{i}" for i in range(20, 25)]
++    assert result["total_count"] == 25
++
++
++def test_archived_orders_excluded_from_total():
++    seed(3)
++    ORDERS["o0"].status = "archived"
++    assert list_orders({})["total_count"] == 2

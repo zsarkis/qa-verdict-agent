@@ -1,0 +1,69 @@
+diff --git a/app/validation.py b/app/validation.py
+index 71e0c44..2ab9f10 100644
+--- a/app/validation.py
++++ b/app/validation.py
+@@ -1,4 +1,9 @@
+ """Input validation helpers."""
+
++import re
++
++EMAIL_PATTERN = re.compile(r"^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$")
++
+
+ def validate_quantity(quantity: int) -> None:
+     if quantity <= 0:
+@@ -8,3 +13,8 @@ def validate_quantity(quantity: int) -> None:
+ def validate_sku(sku: str) -> None:
+     if not sku or " " in sku:
+         raise ValueError("sku must be non-empty and contain no spaces")
++
++
++def validate_email(email: str) -> None:
++    if not EMAIL_PATTERN.match(email):
++        raise ValueError("invalid email address")
+diff --git a/app/api.py b/app/api.py
+index 3f1c2aa..c77d013 100644
+--- a/app/api.py
++++ b/app/api.py
+@@ -7,7 +7,7 @@
+ from app.models import Customer, Order
+ from app.orders import order_total
+ from app.store import ORDERS
+-from app.validation import validate_quantity, validate_sku
++from app.validation import validate_email, validate_quantity, validate_sku
+
+
+ def list_orders(params: dict) -> dict:
+@@ -22,3 +22,9 @@ def create_order(payload: dict) -> dict:
+     order = Order(id=payload["id"], customer=Customer(**payload["customer"]))
+     ORDERS[order.id] = order
+     return {"id": order.id, "total": order_total(order)}
++
++
++def create_customer(payload: dict) -> dict:
++    validate_email(payload["email"])
++    customer = Customer(id=payload["id"], name=payload["name"], email=payload["email"])
++    return {"id": customer.id, "email": customer.email}
+diff --git a/tests/test_validation.py b/tests/test_validation.py
+new file mode 100644
+index 0000000..44a1c09
+--- /dev/null
++++ b/tests/test_validation.py
+@@ -0,0 +1,16 @@
++import pytest
++
++from app.validation import validate_email
++
++
++def test_valid_email_accepted():
++    validate_email("user@example.com")
++
++
++def test_missing_domain_rejected():
++    with pytest.raises(ValueError, match="invalid email address"):
++        validate_email("user@")
++
++
++def test_missing_at_rejected():
++    with pytest.raises(ValueError, match="invalid email address"):
++        validate_email("user.example.com")

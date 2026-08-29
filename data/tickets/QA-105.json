@@ -1,0 +1,13 @@
+{
+  "id": "QA-105",
+  "title": "Send order confirmation email on creation",
+  "type": "feature",
+  "status": "ready_for_qa",
+  "reporter": "marcus",
+  "body": "Customers currently get no confirmation at all after placing an order. Wire the existing notifications module into order creation.",
+  "acceptance_criteria": [
+    {"id": "AC-1", "text": "Creating an order sends a confirmation email to the customer."},
+    {"id": "AC-2", "text": "The confirmation email includes the order id and the order total."}
+  ],
+  "diff_ref": "QA-105.diff"
+}

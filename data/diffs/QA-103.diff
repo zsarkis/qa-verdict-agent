@@ -1,0 +1,60 @@
+diff --git a/app/orders.py b/app/orders.py
+index 8c1f0d2..e5a771b 100644
+--- a/app/orders.py
++++ b/app/orders.py
+@@ -4,12 +4,21 @@ from app.models import Order
+
+ FLAT_SHIPPING = 5.00
+ FREE_SHIPPING_THRESHOLD = 100.00
++BULK_DISCOUNT_MIN_ITEMS = 5
++BULK_DISCOUNT_RATE = 0.10
+
+
+ def subtotal(order: Order) -> float:
+     return sum(item.unit_price * item.quantity for item in order.items)
+
+
++def discounted_subtotal(order: Order) -> float:
++    base = subtotal(order)
++    if order.item_count >= BULK_DISCOUNT_MIN_ITEMS:
++        base = base * (1 - BULK_DISCOUNT_RATE)
++    return int(base * 100) / 100
++
++
+ def shipping_fee(order: Order) -> float:
+     if subtotal(order) >= FREE_SHIPPING_THRESHOLD:
+         return 0.00
+@@ -17,4 +26,4 @@ def shipping_fee(order: Order) -> float:
+
+
+ def order_total(order: Order) -> float:
+-    return subtotal(order) + shipping_fee(order)
++    return discounted_subtotal(order) + shipping_fee(order)
+diff --git a/tests/test_discounts.py b/tests/test_discounts.py
+new file mode 100644
+index 0000000..7f30aa2
+--- /dev/null
++++ b/tests/test_discounts.py
+@@ -0,0 +1,22 @@
++from app.models import Customer, LineItem, Order
++from app.orders import discounted_subtotal
++
++
++def make_order(*items):
++    customer = Customer(id="c1", name="Test Customer", email="test@example.com")
++    return Order(id="o1", customer=customer, items=list(items))
++
++
++def test_no_discount_below_five_items():
++    order = make_order(LineItem("SKU-1", "Widget", 10.00, 4))
++    assert discounted_subtotal(order) == 40.00
++
++
++def test_ten_percent_off_at_five_items():
++    order = make_order(LineItem("SKU-1", "Widget", 19.99, 5))
++    assert discounted_subtotal(order) == 89.95
++
++
++def test_discount_counts_total_items_across_lines():
++    order = make_order(LineItem("SKU-1", "Widget", 10.00, 3), LineItem("SKU-2", "Gadget", 10.00, 2))
++    assert discounted_subtotal(order) == 45.00

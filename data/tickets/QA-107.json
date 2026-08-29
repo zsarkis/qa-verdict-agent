@@ -1,0 +1,13 @@
+{
+  "id": "QA-107",
+  "title": "Gift-wrap flag on line items",
+  "type": "feature",
+  "status": "ready_for_qa",
+  "reporter": "marcus",
+  "body": "Holiday feature: customers can mark individual line items for gift wrapping. No pricing impact in this ticket - just capture the flag on the model and accept it through order creation.",
+  "acceptance_criteria": [
+    {"id": "AC-1", "text": "Line items support an optional gift_wrap boolean, defaulting to false."},
+    {"id": "AC-2", "text": "Existing order validation behavior is unchanged."}
+  ],
+  "diff_ref": "QA-107.diff"
+}

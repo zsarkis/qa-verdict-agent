@@ -1,0 +1,53 @@
+{
+  "_comment": "Eval ground truth for the FINAL system (retrieval on, get_file_context tool available). Read only by evals/ — agent nodes must never see this file. QA-105 is expected to score needs_info until the bounded-tool commit lands; that red-to-green flip is deliberate.",
+  "QA-101": {
+    "overall": "pass",
+    "ac_statuses": {"AC-1": "pass", "AC-2": "pass", "AC-3": "pass"},
+    "rationale": "Clean implementation: limit/offset with correct defaults, total_count over all non-archived orders, tests cover default and offset pages."
+  },
+  "QA-102": {
+    "overall": "fail",
+    "ac_statuses": {"AC-1": "pass", "AC-2": "fail", "AC-3": "pass"},
+    "rationale": "EMAIL_PATTERN only matches lowercase and is compiled without re.IGNORECASE, so USER@EXAMPLE.COM is rejected — AC-2 fails. The added tests only exercise lowercase addresses, so they pass while missing the defect."
+  },
+  "QA-103": {
+    "overall": "fail",
+    "ac_statuses": {"AC-1": "pass", "AC-2": "fail"},
+    "rationale": "Discount logic and threshold are correct, but int(base * 100) / 100 truncates instead of rounding half-even — a defect under the runbook money rule even though the test (89.95) passes. Without the retrieved runbook this diff looks like a pass: this is the RAG-ablation fixture."
+  },
+  "QA-104": {
+    "overall": "needs_info",
+    "ac_statuses": {"AC-1": "unclear", "AC-2": "pass"},
+    "rationale": "The diff hardcodes RETENTION_DAYS = 90, but no source (ticket, diff, glossary, runbook) defines the retention cutoff — the glossary explicitly says ops owns it. AC-1 is unverifiable; AC-2 is verified via the existing archived-status filter in list_orders."
+  },
+  "QA-105": {
+    "overall": "pass",
+    "ac_statuses": {"AC-1": "pass", "AC-2": "pass"},
+    "rationale": "The diff only shows notify_order_created(order) being called; verifying AC-2 requires reading app/notifications.py (not in the diff), which confirms the body includes order id and total. Single-call review without the tool should honestly return unclear on AC-2."
+  },
+  "QA-106": {
+    "overall": "pass",
+    "ac_statuses": {"AC-1": "pass", "AC-2": "pass", "AC-3": "pass"},
+    "rationale": "Summary fields are separate, tax is 8% of subtotal only (shipping untaxed), rounding uses round() (half-even — runbook compliant), and tests cover both an itemized and an empty order."
+  },
+  "QA-107": {
+    "overall": "fail",
+    "ac_statuses": {"AC-1": "pass", "AC-2": "fail"},
+    "rationale": "gift_wrap is added correctly, but the diff also deletes the validate_quantity call from create_order — a regression of existing validation behavior that AC-2 explicitly protects. The runbook holds diffs responsible for what they remove."
+  },
+  "QA-108": {
+    "overall": "pass",
+    "ac_statuses": {"AC-1": "pass", "AC-2": "pass", "AC-3": "pass"},
+    "rationale": "Items are attached at construction, the response total flows through order_total over real items, and a regression test asserts the itemized total. Ticket body contains fictional PII (email, phone, card number) to exercise redaction."
+  },
+  "QA-109": {
+    "overall": "fail",
+    "ac_statuses": {"AC-1": "fail", "AC-2": "pass"},
+    "rationale": "AC says 10 or more items (>= 10); the diff uses item_count > 10, so an exactly-10-item order still pays shipping. The added test at 12 items passes and misses the boundary — which testing-conventions.md calls out as insufficient."
+  },
+  "QA-110": {
+    "overall": "pass",
+    "ac_statuses": {"AC-1": "pass", "AC-2": "pass", "AC-3": "pass"},
+    "rationale": "Noisy-looking refactor, but behavior is correct: promo applies to subtotal before shipping, the threshold evaluates the discounted amount (test at 110.00 - 20% = 88.00 proves it), and no-promo totals are unchanged."
+  }
+}

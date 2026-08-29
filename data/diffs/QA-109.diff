@@ -1,0 +1,44 @@
+diff --git a/app/orders.py b/app/orders.py
+index 8c1f0d2..77c50ef 100644
+--- a/app/orders.py
++++ b/app/orders.py
+@@ -4,6 +4,7 @@ from app.models import Order
+
+ FLAT_SHIPPING = 5.00
+ FREE_SHIPPING_THRESHOLD = 100.00
++BULK_FREE_SHIPPING_MIN_ITEMS = 10
+
+
+ def subtotal(order: Order) -> float:
+@@ -11,6 +12,8 @@ def subtotal(order: Order) -> float:
+
+
+ def shipping_fee(order: Order) -> float:
++    if order.item_count > BULK_FREE_SHIPPING_MIN_ITEMS:
++        return 0.00
+     if subtotal(order) >= FREE_SHIPPING_THRESHOLD:
+         return 0.00
+     return FLAT_SHIPPING
+diff --git a/tests/test_bulk_shipping.py b/tests/test_bulk_shipping.py
+new file mode 100644
+index 0000000..0be6612
+--- /dev/null
++++ b/tests/test_bulk_shipping.py
+@@ -0,0 +1,16 @@
++from app.models import Customer, LineItem, Order
++from app.orders import shipping_fee
++
++
++def make_order(*items):
++    customer = Customer(id="c1", name="Test Customer", email="test@example.com")
++    return Order(id="o1", customer=customer, items=list(items))
++
++
++def test_bulk_orders_ship_free():
++    order = make_order(LineItem("SKU-1", "Widget", 2.00, 12))
++    assert shipping_fee(order) == 0.00
++
++
++def test_small_cheap_orders_still_pay_shipping():
++    order = make_order(LineItem("SKU-1", "Widget", 2.00, 3))
++    assert shipping_fee(order) == 5.00

@@ -1,0 +1,14 @@
+{
+  "id": "QA-102",
+  "title": "Validate customer email on signup",
+  "type": "feature",
+  "status": "ready_for_qa",
+  "reporter": "marcus",
+  "body": "Support keeps seeing bounced welcome emails because signup accepts anything as an email address. Add validation to the new create_customer handler.",
+  "acceptance_criteria": [
+    {"id": "AC-1", "text": "create_customer rejects emails that lack an @ or a domain."},
+    {"id": "AC-2", "text": "Validation is case-insensitive: USER@EXAMPLE.COM is accepted."},
+    {"id": "AC-3", "text": "Rejected emails raise an error with the message 'invalid email address'."}
+  ],
+  "diff_ref": "QA-102.diff"
+}

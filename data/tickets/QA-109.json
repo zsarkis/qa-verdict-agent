@@ -1,0 +1,13 @@
+{
+  "id": "QA-109",
+  "title": "Free shipping for bulk orders",
+  "type": "feature",
+  "status": "ready_for_qa",
+  "reporter": "priya",
+  "body": "Warehouse says bulk orders are cheap to ship per unit, so sales wants to sweeten the deal: orders of ten or more total items ship free even below the $100 subtotal threshold.",
+  "acceptance_criteria": [
+    {"id": "AC-1", "text": "Orders with 10 or more total items ship free regardless of subtotal."},
+    {"id": "AC-2", "text": "The existing $100-subtotal free-shipping rule still applies."}
+  ],
+  "diff_ref": "QA-109.diff"
+}

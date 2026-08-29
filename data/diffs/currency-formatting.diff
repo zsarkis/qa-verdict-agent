@@ -1,0 +1,40 @@
+diff --git a/src/lib/display.test.ts b/src/lib/display.test.ts
+index 0b40465..c882e8e 100644
+--- a/src/lib/display.test.ts
++++ b/src/lib/display.test.ts
+@@ -12,6 +12,16 @@ describe('display helpers', () => {
+     expect(dollars(999)).toBe('$9.99')
+   })
+ 
++  test('dollars adds thousands separators at the $1,000.00 boundary', () => {
++    expect(dollars(99_999)).toBe('$999.99')
++    expect(dollars(100_000)).toBe('$1,000.00')
++    expect(dollars(123_456_789)).toBe('$1,234,567.89')
++  })
++
++  test('dollars renders negative amounts with the sign before the symbol', () => {
++    expect(dollars(-1_234)).toBe('-$12.34')
++  })
++
+   test('truePriceCents computes request-time price from the row shape', () => {
+     expect(truePriceCents(bounty, new Date('2026-08-11T06:00:00Z'))).toBe(10_500)
+   })
+diff --git a/src/lib/display.ts b/src/lib/display.ts
+index ec10ca4..802f431 100644
+--- a/src/lib/display.ts
++++ b/src/lib/display.ts
+@@ -7,7 +7,13 @@ interface PriceRowShape {
+   postedAt: Date
+ }
+ 
+-export const dollars = (cents: number) => `$${(cents / 100).toFixed(2)}`
++export const dollars = (cents: number) => {
++  const sign = cents < 0 ? '-' : ''
++  const amount = (Math.abs(cents) / 100).toLocaleString('en-US', {
++    minimumFractionDigits: 2, maximumFractionDigits: 2,
++  })
++  return `${sign}$${amount}`
++}
+ 
+ // Request-time truth: pages never show the hourly tick's stored price.
+ export function truePriceCents(b: PriceRowShape, now: Date): number {

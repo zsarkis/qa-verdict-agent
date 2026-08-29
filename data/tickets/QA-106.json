@@ -1,0 +1,14 @@
+{
+  "id": "QA-106",
+  "title": "Order summary with tax breakdown",
+  "type": "feature",
+  "status": "ready_for_qa",
+  "reporter": "priya",
+  "body": "Finance needs an itemized order summary for receipts: subtotal, shipping, tax, and grand total as separate fields.",
+  "acceptance_criteria": [
+    {"id": "AC-1", "text": "An order_summary function returns subtotal, shipping, tax, and total as separate fields."},
+    {"id": "AC-2", "text": "Tax is 8% of the merchandise subtotal; shipping is not taxed."},
+    {"id": "AC-3", "text": "Tests cover an order with items and an empty order (all fields zero except shipping rules)."}
+  ],
+  "diff_ref": "QA-106.diff"
+}

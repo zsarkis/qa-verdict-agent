@@ -1,0 +1,39 @@
+[project]
+name = "qa-verdict-agent"
+version = "0.1.0"
+description = "QA verdict agent: reviews code diffs against ticket acceptance criteria, with a human approval gate"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "langchain>=1.3.17,<2",
+  "langchain-anthropic>=1.6.1,<2",
+  "langchain-openai>=1.6.0,<2",
+  "langchain-community>=0.4.2,<1",
+  "langchain-text-splitters>=1.1.2,<2",
+  "langgraph>=1.2.11,<2",
+  "langgraph-checkpoint-sqlite>=3.1.1,<4",
+  "langsmith>=0.11.1,<1",
+  "openevals>=0.2.0,<1",
+  "python-dotenv>=1.0,<2",
+  "requests>=2.32,<3",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.6",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/qa_agent"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["data"]

@@ -1,0 +1,14 @@
+{
+  "id": "QA-110",
+  "title": "Percentage-based promo codes",
+  "type": "feature",
+  "status": "ready_for_qa",
+  "reporter": "marcus",
+  "body": "Marketing wants to run promo campaigns. A promo is a code plus a percent_off value, applied to the merchandise subtotal. The pricing code needed some restructuring to keep this clean - shipping thresholds now evaluate against the discounted subtotal.",
+  "acceptance_criteria": [
+    {"id": "AC-1", "text": "order_total accepts an optional promo ({code, percent_off}) and applies the percentage to the subtotal before shipping is calculated."},
+    {"id": "AC-2", "text": "The free-shipping threshold applies to the discounted subtotal."},
+    {"id": "AC-3", "text": "Totals are unchanged when no promo is given."}
+  ],
+  "diff_ref": "QA-110.diff"
+}
